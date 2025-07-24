@@ -6,6 +6,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Send, Bot, User, Target, TrendingUp, DollarSign } from "lucide-react";
 
+const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY;
+
 interface Message {
   id: string;
   content: string;
@@ -38,7 +40,7 @@ const FinancialChatbot = () => {
     "Let's break this down into manageable monthly actions you can take."
   ];
 
-  const handleSendMessage = (content: string) => {
+  const handleSendMessage = async (content: string) => {
     if (!content.trim()) return;
 
     const userMessage: Message = {
@@ -52,15 +54,55 @@ const FinancialChatbot = () => {
     setInputValue('');
 
     // Simulate AI response
-    setTimeout(() => {
+    // setTimeout(() => {
+    //   const botMessage: Message = {
+    //     id: (Date.now() + 1).toString(),
+    //     content: mockResponses[Math.floor(Math.random() * mockResponses.length)],
+    //     // content: openAiResponse()
+    //     sender: 'bot',
+    //     timestamp: new Date()
+    //   };
+    //   setMessages(prev => [...prev, botMessage]);
+    // }, 1000);
+
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model:"gpt-4o-mini",
+          messages: [
+            { role: "system", content: "You are a financial advisor assistant." },
+            { role: "user", content: content }
+          ],
+        }),
+      });
+  
+      const data = await response.json();
+      console.log(data);
+      const botReply = data.choices?.[0]?.message?.content || "Sorry, I couldn't understand that.";
+  
       const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: mockResponses[Math.floor(Math.random() * mockResponses.length)],
+        content: botReply,
+        sender: 'bot',
+        timestamp: new Date()
+      };
+  
+      setMessages(prev => [...prev, botMessage]);
+    } catch (error) {
+      console.error("OpenAI error:", error);
+      const botMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        content: "Something went wrong while fetching a response. Please try again later.",
         sender: 'bot',
         timestamp: new Date()
       };
       setMessages(prev => [...prev, botMessage]);
-    }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
