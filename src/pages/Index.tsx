@@ -22,11 +22,11 @@ const Index = () => {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="chat" className="flex-1 min-h-0">
+          <TabsContent value="chat" className="flex-1 min-h-0" isHidden = {"chat" !== activeTab }>
             <FinancialChatbot />
           </TabsContent>
           
-          <TabsContent value="goals" className="flex-1 overflow-auto">
+          <TabsContent value="goals" className="flex-1 overflow-auto" isHidden = {"goals" !== activeTab }>
             <GoalTracker />
           </TabsContent>
         </Tabs>

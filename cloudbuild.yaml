@@ -1,0 +1,28 @@
+steps:
+  # Step 1: Access the secret from GCP Secret Manager
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: 'fetch-secret'
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        echo "Fetching OpenAI secret..."
+        gcloud secrets versions access latest --secret=VITE_OPENAI_API_KEY > .env.production
+
+  # Step 2: Build the Docker image for linux/amd64
+  - name: gcr.io/cloud-builders/docker
+    id: 'docker-build'
+    entrypoint: bash
+    env:
+      - DOCKER_CLI_EXPERIMENTAL=enabled
+    args:
+      - -c
+      - |
+        docker buildx create --use
+        docker buildx build \
+          --platform=linux/amd64 \
+          -t asia-south1-docker.pkg.dev/hack-team-finaccess/bachatbuddyrepository/my-vite-app2 \
+          --push .
+
+images:
+  - asia-south1-docker.pkg.dev/hack-team-finaccess/bachatbuddyrepository/my-vite-app2
